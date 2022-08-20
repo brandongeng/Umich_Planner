@@ -18,13 +18,12 @@ app.get('/weather', (req,res)=>{
 
     const options = {
         method: 'get',
-        url: `https://api.openweathermap.org/data/2.5/weather?lat=42.279594&lon=-83.732124&units=imperial&appid=${REACT_APP_OPEN_WEATHER_KEY}`
+        url: `https://api.openweathermap.org/data/2.5/weather?lat=42.279594&lon=-83.732124&units=imperial&appid=${process.env.REACT_APP_OPEN_WEATHER_KEY}`
     }
     axios.request(options).then((response)=>{
         res.json(response.data)
     }).catch((error)=>{
         console.log(error)
-        res.json(response.data)
     })
 })
 
@@ -52,6 +51,7 @@ app.get('/walking', (req,res)=>{
         res.json(response.data)
     }).catch((error)=>{
         console.log(error)
+        res.json(response.data)
     })
 })
 
@@ -64,6 +64,7 @@ app.get('/transit', (req,res)=>{
         res.json(response.data)
     }).catch((error)=>{
         console.log(error)
+        res.json(response.data)
     })
 })
 

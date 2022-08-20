@@ -337,6 +337,7 @@ function App() {
       }
     }
     return new Promise(resolve =>  axios.request(options).then((response)=>{
+        console.log(response.data)
         var toUpdate = [... addedClasses]
         toUpdate[i].transitName = []
         toUpdate[i].duration = response.data.routes[0].legs[0].duration.text
@@ -381,6 +382,7 @@ function App() {
     }
 
     return new Promise(resolve =>  axios.request(options).then((response)=>{
+        console.log(response.data)
         var toUpdate = [... addedClasses]
           toUpdate[i].transitName = []
           for (var j = 0; j < response.data.routes[0].legs[0].steps.length; j++){
@@ -775,13 +777,13 @@ function App() {
             </ContentContainer>
             <ContentContainer height = "60%" style = {{overflow: "auto", alignContent: "flex-start"}}>
                 {todo.map((data,i)=>(
-                  <ClassContainer>
+                  <AddTodoContainer style={{marginBottom: "0"}}>
                     <h3 style={{margin:0, marginLeft:"1%"}}>{data.name}
                       <span style={{float: "right", clear: "both"}}> <DeleteIcon fontSize="0" onClick ={()=>handleDeleteTodo  (i)} style= {{cursor:"pointer"}}/> </span>
                     </h3>
                     <p style={{margin:0, marginLeft:"1%"}}>Due: {data.dueDate}</p>
                     
-                  </ClassContainer>
+                  </AddTodoContainer>
                 ))}
                 <AddTodoContainer>
                   <h3 style={{marginTop:0, marginLeft:"1%"}}>Add Task</h3>
@@ -831,7 +833,7 @@ function App() {
                 <div>
                   <p style={{backgroundColor: "", margin:0}}>
                     Time to Get to Class: {data.duration} <br/>
-                    Mode of Transportation: {"transitName" in data && data.transitName.length !== 0 ? data.transitName:"Walking"} <br/>
+                    Mode of Transportation: {"transitName" in data && data.transitName.length !== 0 ? data.transitName.join(', '):"Walking"} <br/>
                     Next Class: {numberToDay(data.nextClass-data.nextClass%1)}<br/>
                   </p>
                 </div>
