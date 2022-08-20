@@ -18,7 +18,7 @@ app.get('/weather', (req,res)=>{
 
     const options = {
         method: 'get',
-        url: 'https://api.openweathermap.org/data/2.5/weather?lat=42.279594&lon=-83.732124&units=imperial&appid=0b2af0d3481bfeec3d9b919b8afe763d'
+        url: `https://api.openweathermap.org/data/2.5/weather?lat=42.279594&lon=-83.732124&units=imperial&appid=${REACT_APP_OPEN_WEATHER_KEY}`
     }
     axios.request(options).then((response)=>{
         res.json(response.data)
