@@ -34,11 +34,12 @@ const locationFullName = [{"Abbr":"A&AB","Full":"Art & Architecture Building"},{
 
 const SectionContainer = styled.div`
   height:100vh;
-  width: 100vw;
+  width: 100%;
   display:flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
+  font-family: sans-serif;
 `
 
 const SearchContainer = styled.div`
@@ -186,7 +187,7 @@ function App() {
     });
 
     if (!contains){
-      setAddedClasses((addedClasses) => [...addedClasses, ...classesToAdd])
+      setAddedClasses((addedClasses) => [...addedClasses, ...classesToAdd]);
       setCourseNbrSelect("");
       setSectionSelect("");
       setSubjectSelect("");
@@ -541,39 +542,43 @@ function App() {
   }
 
   function handleLogin(){
-    const provider = new GoogleAuthProvider();
-    const auth = getAuth(app);
-    signInWithPopup(auth, provider).then((result)=>{
-      setUser(result.user);
-      onValue(ref(db, "users"), (snapshot) => {
-        const data = snapshot.val();
-        var arrayData = Object.values(data)
-        arrayData = arrayData.filter(object => object.username === result.user.uid)
-        if (arrayData.length === 0){
-          //console.log("new user")
-          set(ref(db, 'users/'+ result.user.uid), {
-            username: result.user.uid,
-            email: result.user.email,
-          });
-        }
-        else{
-          //console.log("returning user")
-          onValue(ref(db, 'users/' + result.user.uid), (snapshot) => {
-            const data = snapshot.val();
-            if (data.hasOwnProperty("addedClasses")){
-              setAddedClasses(data.addedClasses)
-            }
-            if (data.hasOwnProperty("todo")){
-              setTodo(data.todo)
-            }
-          });
-          
-          setDuration(true);
-        }
+    let isCleanup = true;
+    if (isCleanup){
+      const provider = new GoogleAuthProvider();
+      const auth = getAuth(app);
+      signInWithPopup(auth, provider).then((result)=>{
+        setUser(result.user);
+        onValue(ref(db, "users"), (snapshot) => {
+          const data = snapshot.val();
+          var arrayData = Object.values(data)
+          arrayData = arrayData.filter(object => object.username === result.user.uid)
+          if (arrayData.length === 0){
+            set(ref(db, 'users/'+ result.user.uid), {
+              username: result.user.uid,
+              email: result.user.email,
+            });
+          }
+          else{
+            onValue(ref(db, 'users/' + result.user.uid), (snapshot) => {
+              const data = snapshot.val();
+              if (data.hasOwnProperty("addedClasses")){
+                setAddedClasses(data.addedClasses)
+              }
+              if (data.hasOwnProperty("todo")){
+                setTodo(data.todo)
+              }
+            });
+            console.log("LOGIN")
+          }
+        });
+        console.log("LOGIN FINISHED ")
+      }).catch((error)=>{
+        console.log(error)
       });
-    }).catch((error)=>{
-      console.log(error)
-    });
+    }
+    return () =>{
+      isCleanup = false;
+    }
   }
 
   function handleLogOut(){
@@ -646,7 +651,7 @@ function App() {
             <Button variant="contained"
             sx={{ width: "100%", height: "5vh" }}
             disabled = {!objectIsEmpty(user)}
-            onClick = {()=>handleLogin()}
+            onClick = {()=>{handleLogin()}}
             >
                 Log In
             </Button>
