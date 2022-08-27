@@ -8,8 +8,32 @@ starts backend at port 8000
 
 #### npm run start:frontend
 
-starts frontend at port.
+starts frontend at port 3000.
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+#### Technologies Used
+
+<ul>
+    <li>Frontend</li>
+	<ul>
+		<li>React</li>
+		<li>HTML</li>
+		<li>CSS (styled components)</li>
+		<li>Javascript</li>
+	</ul>
+    <li>Backend</li>
+    <ul>
+		<li>Node</li>
+		<li>Express</li>
+		<li>Axios</li>
+	</ul>
+    <li>APIs</li>
+	<ul>
+		<li>Open Weather API</li>
+        <li>Google Maps API - Directions</li>
+        <li>Google Maps API - Geocoding</li>
+	</ul>
+</ul>
 
 ### TODOS
 
