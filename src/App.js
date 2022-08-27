@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { app, db } from "./firebase";
-import {useState, useEffect, useRef} from "react"
-import { set, ref, onValue, remove, update } from "firebase/database";
+import {useState, useEffect} from "react"
+import { set, ref, onValue, update } from "firebase/database";
 import { GoogleAuthProvider, signInWithRedirect, getAuth, signOut, signInWithPopup } from "firebase/auth";
 import { Autocomplete, Button, Stack, TextField } from "@mui/material";
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
@@ -70,6 +70,8 @@ const VerticalContainer = styled.div`
   align-items: center;
   justify-content: flex-start;
   overflow: auto;
+  position: relative;
+  overflow: hidden;
 `
 
 const ClassContainer = styled.div`
@@ -142,6 +144,16 @@ const AddTodoContainer = styled.div`
   margin:2vh;
 `
 
+const LoadingContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255,255,255,0.7);
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`
+
 function App() {
 
   const [courses,setCourses] = useState([]);
@@ -149,12 +161,12 @@ function App() {
   const [courseNbrSelect, setCourseNbrSelect] = useState("");
   const [sectionSelect, setSectionSelect] = useState("");
   const [addedClasses, setAddedClasses] = useState([]);
-  const [duration, setDuration] = useState(false)
   const [weather, setWeather] = useState(null);
   const [user, setUser] = useState({});
   const [todoName, setTodoName] = useState("");
   const [todoDate, setTodoDate] = useState(new Date());
   const [todo, setTodo] = useState([]);
+  const [gettingDuration, setGettingDuration] = useState(false)
 
   const uniqueSubjects = [...new Set(courses.map(item => item.Subject))];
 
@@ -176,7 +188,7 @@ function App() {
     })
   },[])
 
-  function handleAddClass (){
+  async function handleAddClass (){
     const classesToAdd = courseNbrFilteredData.filter(function (i,n){
       return parseInt(i.Section) === (courseNbrSelect !== null ? parseInt(sectionSelect.toLowerCase()):"");
     })
@@ -187,11 +199,10 @@ function App() {
     });
 
     if (!contains){
-      setAddedClasses((addedClasses) => [...addedClasses, ...classesToAdd]);
+      await setAddedClasses((addedClasses) => [...addedClasses, ...classesToAdd]);
       setCourseNbrSelect("");
       setSectionSelect("");
       setSubjectSelect("");
-      setDuration(true);
     }
     else{
       alert("Class Already Added");
@@ -338,7 +349,7 @@ function App() {
       }
     }
     return new Promise(resolve =>  axios.request(options).then((response)=>{
-        console.log(response.data)
+        //console.log(response.data)
         var toUpdate = [... addedClasses]
         toUpdate[i].transitName = []
         toUpdate[i].duration = response.data.routes[0].legs[0].duration.text
@@ -383,7 +394,7 @@ function App() {
     }
 
     return new Promise(resolve =>  axios.request(options).then((response)=>{
-        console.log(response.data)
+        //console.log(response.data)
         var toUpdate = [... addedClasses]
           toUpdate[i].transitName = []
           for (var j = 0; j < response.data.routes[0].legs[0].steps.length; j++){
@@ -398,32 +409,6 @@ function App() {
         console.log(error)
       })
     )
-
-    /*const directionsService = new google.maps.DirectionsService();
-    const request = {
-      origin: origin,
-      destination: destination,
-      travelMode: google.maps.TravelMode.TRANSIT
-    };
-    return new Promise(resolve => directionsService.route(request,
-      function(result, status){
-        if (status === google.maps.DirectionsStatus.OK){
-          var toUpdate = [... addedClasses]
-          toUpdate[i].transitName = []
-          for (var j = 0; j < result.routes[0].legs[0].steps.length; j++){
-            if ("transit" in result.routes[0].legs[0].steps[j]){
-              toUpdate[i].transitName.push(result.routes[0].legs[0].steps[j].transit.line.name)
-            }
-          }
-          toUpdate[i].nextClass = courseObjectToDateArray(addedClasses[i])
-          toUpdate[i].duration = result.routes[0].legs[0].duration.text
-          //setAddedClasses(toUpdate)
-          resolve(toUpdate);
-        }
-        else{
-        }
-      }
-    ));*/
   }
 
 
@@ -432,7 +417,8 @@ function App() {
   }
 
   async function fetchData(i){
-
+    console.log("Fetching data")
+    setGettingDuration(true);
     if (addedClasses.length === 0){
       console.log("No Classes")
       return;
@@ -441,24 +427,22 @@ function App() {
     const origin = await getLocation();
     const toUpdateWalking = await getDurationWalking(i, fullName, origin);
     const toUpdateTransit = await getDurationTransit(i, fullName, origin);
-    await timeout(5000);
+    await timeout(1000);
     if (toUpdateTransit[i].duration < toUpdateWalking[i].duration){
       setAddedClasses(toUpdateTransit)
     }
     else{
       setAddedClasses(toUpdateWalking);
     }
+    console.log("Finished Fetching Data")
+    setGettingDuration(false)
   }
 
   useEffect(()=>{
-    if (duration){
-      for(var i = 0; i < addedClasses.length; i++){ 
-        fetchData(i);
-      }
-      setDuration(false);
+    for(var i = 0; i < addedClasses.length; i++){ 
+      fetchData(i);
     }
-  },[duration])
-
+  },[addedClasses.length])
 
   useEffect(()=>{
     const options = {
@@ -543,6 +527,7 @@ function App() {
 
   function handleLogin(){
     let isCleanup = true;
+    console.log("hrlp")
     if (isCleanup){
       const provider = new GoogleAuthProvider();
       const auth = getAuth(app);
@@ -568,10 +553,9 @@ function App() {
                 setTodo(data.todo)
               }
             });
-            console.log("LOGIN")
           }
         });
-        console.log("LOGIN FINISHED ")
+
       }).catch((error)=>{
         console.log(error)
       });
@@ -651,7 +635,7 @@ function App() {
             <Button variant="contained"
             sx={{ width: "100%", height: "5vh" }}
             disabled = {!objectIsEmpty(user)}
-            onClick = {()=>{handleLogin()}}
+            onClick = {()=>handleLogin()}
             >
                 Log In
             </Button>
@@ -844,6 +828,9 @@ function App() {
                 </div>
               </ClassContainer>
             ))}
+            <LoadingContainer style={{display: gettingDuration ? "flex":"none"}}>
+              <h1 style={{color: "gray"}}>One Moment...</h1>
+            </LoadingContainer>
           </VerticalContainer>
         </Row>
       </SectionContainer>
